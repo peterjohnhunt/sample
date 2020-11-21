@@ -16,4 +16,6 @@
     </div>
 <?php endif; ?>
 
+<?php get_template_part("form"); ?>
+
 <?php get_footer(); ?>

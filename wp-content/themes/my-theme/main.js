@@ -1,0 +1,6 @@
+/* global AJAX */
+jQuery(function($) {
+
+
+
+});

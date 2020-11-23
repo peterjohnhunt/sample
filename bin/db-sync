@@ -1,0 +1,8 @@
+mkdir db
+wp db export db/backup.sql
+wp @production db export --no-tablespaces - > db/latest-db.sql
+wp db import db/latest-db.sql
+wp option set blog_public 0
+wp plugin deactivate autoptimize
+wp cache flush
+wp rewrite flush

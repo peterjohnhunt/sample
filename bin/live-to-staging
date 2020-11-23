@@ -1,0 +1,8 @@
+mkdir db
+wp @production db export --no-tablespaces - > db/production.sql
+wp @staging db export --no-tablespaces - > db/staging.sql
+wp @staging db import - < db/production.sql
+wp @staging search-replace usefulgroup.com ugstaging.wpengine.com
+wp @staging option set blog_public 0
+wp @staging plugin deactivate autoptimize
+wp @staging cache flush

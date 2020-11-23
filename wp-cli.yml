@@ -1,0 +1,54 @@
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Command Defaults
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+publish:
+  repository: https://github.com/peterjohnhunt/sample
+
+core install:
+  admin_user: root
+  admin_password: root
+  admin_email: admin@sitename.com
+  skip-email: true
+
+config create:
+  dbuser: root
+  dbpass: root
+  dbhost: localhost
+  extra-php: |
+    /** Custom Settings */
+    define( 'WP_HOME',          'http://local.SITENAME.com' );
+    define( 'WP_SITEURL',       'http://local.SITENAME.com' );
+
+    define( 'WP_DEBUG',         true );
+    define( 'WP_DEBUG_DISPLAY', false );
+    define( 'WP_DEBUG_LOG',     true );
+
+
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Allow Hard Rewrite Refresh
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+apache_modules:
+  - mod_rewrite
+
+
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Aliases
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+@dev:
+  ssh: peterjohnhunt@peterjohnhunt.ssh.wpengine.net
+  user: peterjohnhunt
+  path: /sites/peterjohnhunt
+
+@staging:
+  ssh: peterjohnhunt@peterjohnhunt.ssh.wpengine.net
+
+@production:
+  ssh: peterjohnhunt@peterjohnhunt.ssh.wpengine.net
+
+@development:
+ - @local
+ - @demo
+
+@wpengine:
+  - @staging
+  - @production

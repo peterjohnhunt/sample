@@ -1,0 +1,124 @@
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Stages
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+stages:
+  - build
+  - deploy
+
+
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Setup
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+.setup_ssh: &setup_ssh
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+.setup_git: &setup_git
+  - git config --global user.email $GIT_EMAIL
+  - git config --global user.name $GIT_USER
+
+.setup_npm: &setup_npm
+  - npm install -g gulp-cli
+
+.compile_gulp: &compile_assets
+  - cd wp-content/themes/${THEME_NAME}
+  - npm install
+  - gulp build -production
+  - cd ../../../
+
+
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Build Assets
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+build assets:
+  image: node:latest
+  stage: build
+  before_script:
+      - npm ci --cache .npm --prefer-offline
+  script:
+    - *setup_npm
+    - *compile_assets
+  only:
+    refs:
+      - develop
+      - master
+      - tags
+    variables:
+      - $THEME_NAME
+  artifacts:
+    untracked: true
+  cache:
+    key: node_modules
+    paths:
+      - .npm/
+      - wp-content/themes/$THEME_NAME/node_modules/
+
+
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+# ✅ Deploy To WPEngine
+#≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+.wpengine_deploy: &wpengine_deploy
+  stage: deploy
+  dependencies:
+    - build assets
+  before_script:
+    - *setup_ssh
+    - *setup_git
+  script:
+    # Site
+    - rm .gitignore
+    - mv .gitignore-ci .gitignore
+
+    # Theme
+    - rm wp-content/themes/${THEME_NAME}/.gitignore
+    - mv wp-content/themes/${THEME_NAME}/.gitignore-ci wp-content/themes/${THEME_NAME}/.gitignore
+
+    # Git
+    - git rm -rfq --cached .
+    - git add --all
+    - git commit -m "Prepared Deployment"
+    - git clean -fdx
+    - git push git@git.wpengine.com:production/$WPE_INSTALL.git HEAD:refs/heads/master --force
+
+deploy to dev:
+  <<: *wpengine_deploy
+  only:
+    refs:
+      - develop
+    variables:
+      - $WPE_INSTALL
+      - $THEME_NAME
+  environment:
+    name: dev
+    url: http://$WPE_INSTALL.wpengine.com
+  allow_failure: true
+
+deploy to staging:
+  <<: *wpengine_deploy
+  only:
+    refs:
+      - master
+      - tags
+    variables:
+      - $WPE_INSTALL
+      - $THEME_NAME
+  environment:
+    name: staging
+    url: http://$WPE_INSTALL.wpengine.com
+
+deploy to production:
+  <<: *wpengine_deploy
+  only:
+    refs:
+      - tags
+    variables:
+      - $WPE_INSTALL
+      - $THEME_NAME
+  environment:
+    name: production
+    url: http://$WPE_INSTALL.wpengine.com

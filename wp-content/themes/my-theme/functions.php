@@ -42,3 +42,13 @@ function load_scripts($hook) {
     wp_enqueue_script( 'theme-javascript', get_template_directory_uri() . '/main.js', ['jquery'], get_theme_version(), true );
 }
 add_action('wp_enqueue_scripts', 'load_scripts');
+
+//≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+// ✅ Includes
+//≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+/**
+ * Include files
+ */
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+    require_once 'includes/wp-cli-commands.php';
+}

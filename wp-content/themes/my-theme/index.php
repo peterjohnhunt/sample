@@ -4,7 +4,7 @@
 
 <?php if ( have_posts() ) : ?>
     <div>
-        <h2>Posts:</h2>
+        <h2><?php echo ucwords(get_post_type()); ?>s:</h2>
         <?php while ( have_posts() ) : the_post(); ?>
 
             <article>
